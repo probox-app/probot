@@ -227,7 +227,7 @@ function loadProbot() {
                 `
                 products.append(product)
             })
-
+            
             control(add)
             chat.append(products)
             show(products)
@@ -252,11 +252,11 @@ function loadProbot() {
     head.append(title)
     head.append(total)
     head.append(cart)
-    
+
     html.append(head)
     html.append(chat)
     html.append(footer)
-    
+
     html.removeChild(loader)
     html.className = 'probot'
     chat.update(app.bot[app.step])
@@ -264,25 +264,33 @@ function loadProbot() {
 
 var probot = (ID) => {
 
-    const ws = new WebSocket('wss://probot.probox.app')
-    //const ws = new WebSocket('ws://localhost:8080')
-    ws.onmessage = ({ data }) => {
+    //const ws = new WebSocket('wss://probot.probox.app')
+    const ws = new WebSocket('ws://localhost:3000')
+    ws.onmessage = async ({ data }) => {
 
         var sm = JSON.parse(data)
         console.log(sm);
 
         if (sm.restaurant) {
-            if (sm.api.pix) sm.api.pix = eval(sm.api.pix)
             sm.bot.map((m, i) => {
                 if (m.cb) sm.bot[i].cb = eval(sm.bot[i].cb)
             })
             app.cart.client = sm.client
             app = { ...app, ...sm }
+
             loadProbot()
         }
 
         if (sm.pay) {
-            message(`<i class="fa fa-check" /> PAGAMENTO CONFIRMADO.`); next()
+            message(`<i class="fa fa-check" /> PAGAMENTO CONFIRMADO.`);
+            next()
+        }
+
+        if (sm.clientSecret) {
+            var stripe = Stripe('pk_live_51O6f8xLk9JKXmx0HwlFR547h1X4Qt5DpUAuOSCLPdcYe5dWrEa3cuwsVz10xYzz1N7Xmk25AJNa9IF7039mOaHkr00wi2tovIC');
+            message(`<div id="checkout"></div>`);
+            const checkout = await stripe.initEmbeddedCheckout({ clientSecret: sm.clientSecret });
+            checkout.mount('#checkout');
         }
     }
 
