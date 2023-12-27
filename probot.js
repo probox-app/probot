@@ -303,7 +303,7 @@ var probot = (ID) => {
 
         if (sm.clientSecret) {
             message("Efetue o pagamento inserindo seus dados logo abaixo.")
-            var stripe = Stripe(app.stripe);
+            var stripe = Stripe(app.stripe.client);
             message(`<div id="checkout"></div>`);
             const checkout = await stripe.initEmbeddedCheckout({ clientSecret: sm.clientSecret });
             checkout.mount('#checkout');
