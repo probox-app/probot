@@ -4,7 +4,8 @@ var app = {
 }
 
 //LOADER CSS
-document.head.innerHTML += `<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/probox-app/probot/loader.css" type="text/css" />`
+document.head.innerHTML += `<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/probox-app/probot/loader.css" type="text/css" /><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css" integrity="sha512-MV7K8+y+gLIBoVD59lQIYicR65iaqukzvf/nwasF0nqhPay5w/9lJmVM2hMDcnK1OnMGCdVK+iQrJ7lzPJQd1w==" crossOrigin="anonymous" referrerPolicy="no-referrer" />`
+//document.head.innerHTML += `<link rel="stylesheet" href="loader.css" type="text/css" /><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css" integrity="sha512-MV7K8+y+gLIBoVD59lQIYicR65iaqukzvf/nwasF0nqhPay5w/9lJmVM2hMDcnK1OnMGCdVK+iQrJ7lzPJQd1w==" crossOrigin="anonymous" referrerPolicy="no-referrer" />`
 
 // CART
 var cart = document.createElement("div");
@@ -106,10 +107,12 @@ const control = (e) => {
         footer.removeChild(add)
     if (footer.contains(buttons))
         footer.removeChild(buttons)
-    e.className += ' opacity'
-    footer.append(e)
-    show(e)
-    input.focus()
+    if (e) {
+        e.className += ' opacity'
+        footer.append(e)
+        show(e)
+        input.focus()
+    }
 }
 const next = () => { if (app.bot[++app.step]) chat.update(app.bot[app.step]) }
 const restart = () => {
@@ -157,7 +160,7 @@ async function sw() {
 function loadProbot() {
 
     // CSS
-    document.head.innerHTML += `<style>:root { --main: ${app.theme};--green: #00FF7F;--text: #222;--border: #ddd;--background: #f1f1f1;--white: white;}</style><link rel="stylesheet" href="${app.css}" type="text/css"/><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css" integrity="sha512-MV7K8+y+gLIBoVD59lQIYicR65iaqukzvf/nwasF0nqhPay5w/9lJmVM2hMDcnK1OnMGCdVK+iQrJ7lzPJQd1w==" crossOrigin="anonymous" referrerPolicy="no-referrer" />`;
+    document.head.innerHTML += `<style>:root { --main: ${app.theme};--green: #00FF7F;--text: #222;--border: #ddd;--background: #f1f1f1;--white: white;}</style><link rel="stylesheet" href="${app.css}" type="text/css"/>`;
 
     logo.src = app.logo;
     title.innerHTML = app.restaurant
@@ -227,7 +230,7 @@ function loadProbot() {
                 `
                 products.append(product)
             })
-            
+
             control(add)
             chat.append(products)
             show(products)
@@ -260,12 +263,23 @@ function loadProbot() {
     html.removeChild(loader)
     html.className = 'probot'
     chat.update(app.bot[app.step])
+
+    const query = window.location.search;
+    const params = new URLSearchParams(query);
+    let ok = params.get('checkout');
+    if (ok) {
+        var checkout = document.createElement("div");
+        checkout.id = "checkout"
+        checkout.className = "checkout"
+        checkout.innerHTML = `<i class="fa fa-check-circle"></i><h2>Pedido concluido com sucesso.</h2><button class="button" onclick="document.getElementById('checkout').remove()">Novo pedido</button>`
+        html.append(checkout)
+    }
 }
 
 var probot = (ID) => {
 
-    //const ws = new WebSocket('wss://probot.probox.app')
-    const ws = new WebSocket('ws://localhost:3000')
+    const ws = new WebSocket('wss://probot.probox.app')
+    //const ws = new WebSocket('ws://localhost:3000')
     ws.onmessage = async ({ data }) => {
 
         var sm = JSON.parse(data)
@@ -276,6 +290,7 @@ var probot = (ID) => {
                 if (m.cb) sm.bot[i].cb = eval(sm.bot[i].cb)
             })
             app.cart.client = sm.client
+            app.client = sm.client
             app = { ...app, ...sm }
 
             loadProbot()
@@ -287,15 +302,20 @@ var probot = (ID) => {
         }
 
         if (sm.clientSecret) {
-            var stripe = Stripe('pk_live_51O6f8xLk9JKXmx0HwlFR547h1X4Qt5DpUAuOSCLPdcYe5dWrEa3cuwsVz10xYzz1N7Xmk25AJNa9IF7039mOaHkr00wi2tovIC');
+            message("Efetue o pagamento inserindo seus dados logo abaixo.")
+            //var stripe = Stripe('pk_live_51O6f8xLk9JKXmx0HwlFR547h1X4Qt5DpUAuOSCLPdcYe5dWrEa3cuwsVz10xYzz1N7Xmk25AJNa9IF7039mOaHkr00wi2tovIC');
+            var stripe = Stripe('pk_test_51O6f8xLk9JKXmx0Hx7GJLTvEeSTuQ1klKvCyNd5iS5QcepQJV8EdjRACkPCiZqjsXHXQ8FLfsxt8oft5GMYLOfci003LjJdaxE');
             message(`<div id="checkout"></div>`);
             const checkout = await stripe.initEmbeddedCheckout({ clientSecret: sm.clientSecret });
             checkout.mount('#checkout');
+            message("Aguardando o pagamento...")
+            control()
         }
     }
 
     ws.onopen = () => {
         app.id = ID
-        ws.send(JSON.stringify({ id: ID }))
+        ws.send(JSON.stringify({ id: ID, start: true }))
     }
+
 }

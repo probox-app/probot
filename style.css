@@ -1,7 +1,6 @@
-@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
 
 .probot {
-    font-family: 'Roboto', sans-serif;
+    font-family: 'Roboto', 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
     width: 100%;
     height: 100%;
     position: absolute;
@@ -124,7 +123,7 @@
 .probot .chat .msg {
     padding: 20px;
     border-radius: 14px;
-    margin-top: 24px;
+    margin-top: 16px;
     font-size: 18px;
     word-wrap: break-word;
     clear: both;
@@ -133,6 +132,10 @@
     position: relative;
     border: 2px solid var(--border);
     border-bottom: 5px solid var(--border);
+}
+
+.probot #checkout{
+    min-width: 410px;
 }
 
 .probot .opacity {
