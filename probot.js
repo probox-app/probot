@@ -303,8 +303,7 @@ var probot = (ID) => {
 
         if (sm.clientSecret) {
             message("Efetue o pagamento inserindo seus dados logo abaixo.")
-            //var stripe = Stripe('pk_live_51O6f8xLk9JKXmx0HwlFR547h1X4Qt5DpUAuOSCLPdcYe5dWrEa3cuwsVz10xYzz1N7Xmk25AJNa9IF7039mOaHkr00wi2tovIC');
-            var stripe = Stripe('pk_test_51O6f8xLk9JKXmx0Hx7GJLTvEeSTuQ1klKvCyNd5iS5QcepQJV8EdjRACkPCiZqjsXHXQ8FLfsxt8oft5GMYLOfci003LjJdaxE');
+            var stripe = Stripe(app.stripe);
             message(`<div id="checkout"></div>`);
             const checkout = await stripe.initEmbeddedCheckout({ clientSecret: sm.clientSecret });
             checkout.mount('#checkout');
